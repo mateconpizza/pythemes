@@ -155,3 +155,15 @@ raises-require-match-for = ["requests.RequestException"]
 
 [tool.ruff.lint.flake8-tidy-imports]
 ban-relative-imports = "all"
+
+[dependency-groups]
+dev = [
+    "coverage[toml]>=6.5",
+    "pytest>=8.3.5",
+]
+
+[tool.hatch.build.targets.sdist]
+exclude = [".pre-commit-config.yaml", ".gitignore"]
+
+[tool.hatch.build.targets.wheel]
+exclude = [".pre-commit-config.yaml", ".gitignore"]
