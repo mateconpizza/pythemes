@@ -1064,18 +1064,18 @@ def colorize(text: str, *styles: str) -> str:
     return ''.join(styles) + text + END
 
 
-def handle_missing_theme(theme_name: str) -> int:
+def handle_missing_theme(t: str) -> int:
     """Handles the case when a theme is not found."""
-    logme(f'theme={theme_name!r} not found')
+    logme(f'theme={t!r} not found')
     print('\nThemes found:')
     print_list_themes()
     return 1
 
 
-def initialize_theme(theme_name: str, filepath: Path, dry_run: bool) -> Theme:
+def initialize_theme(t: str, filepath: Path, dry_run: bool) -> Theme:
     """Initializes and parses the theme from the INI file."""
     ini = INIFile(filepath)
-    theme = Theme(theme_name, ini, dry_run=dry_run).load()
+    theme = Theme(t, ini, dry_run=dry_run).load()
     theme.parse_apps()
     return theme
 
@@ -1091,7 +1091,6 @@ def process_theme(theme: Theme, mode: str) -> None:
         if app.error.occurred:
             continue
         commander.add(app)
-        # time.sleep(0.005)
         theme.updates += 1
 
     handle_theme_updates(theme, commander, mode)
@@ -1126,10 +1125,11 @@ def handle_theme_updates(theme: Theme, commander: Commander, mode: str) -> None:
 def diff_app(theme: Theme, appname: str, mode: str) -> int:
     if not (app := get_app(theme, appname, mode)):
         return 1
-    if not (diff := app.diff(mode)):
-        print(app)
-        return 1
+    diff = app.diff(mode)
     print(app)
+    if not diff:
+        return 1
+
     print(diff)
 
     return 0

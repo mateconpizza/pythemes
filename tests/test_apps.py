@@ -116,7 +116,7 @@ def test_app_invalid(
         ('no_changes', 'light', True, 'must return an empty string'),
     ],
 )
-def test_app_difffff(valid_app_with_file: App, name, mode, expected, reason):
+def test_app_diff(valid_app_with_file: App, name, mode, expected, reason):
     app = valid_app_with_file
     got = app.diff(mode)
     assert (got == '') == expected, f'{name}: {reason}'
