@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import Self
 
 __appname__ = 'pythemes'
-__version__ = 'v0.1.8'
+__version__ = 'v0.1.9'
 
 logger = logging.getLogger(__name__)
 
@@ -31,13 +31,14 @@ APP_ROOT = Path(os.environ.get('XDG_CONFIG_HOME', Path.home() / '.config'))
 APP_HOME = APP_ROOT / __appname__.lower()
 PROGRAMS_RESTART: list[str] = []
 HELP = textwrap.dedent(
-    f"""Usage: {__appname__} [-h] [-m MODE] [-l] [-a APP] [-L] [-d] [-v] [-c COLOR] [--diff] [--verbose] [theme]
+    f"""Usage: {__appname__} [-h] [-m MODE] [-l] [-e] [-a APP] [-L] [-d] [-v] [-c COLOR] [--diff] [--verbose] [theme]
 
     Simple CLI tool for update themes files, with find/replace and execute commands.
 
 Options:
     theme               Theme name
     -m, --mode          Select a mode [light|dark]
+    -e, --edit          Edit theme with $EDITOR
     -l, --list          List themes found
     -a, --app           Apply mode to app
     -D, --diff          Show app diff
@@ -941,7 +942,24 @@ def get_app(theme: Theme, appname: str, mode: str) -> App | None:
     return app
 
 
+def edition(theme: Theme) -> int:
+    editor = os.environ.get('EDITOR')
+    if not editor:
+        logger.error('EDITOR environment variable not set')
+        return 1
+
+    cmds = shlex.split(f'{editor} {shlex.quote(theme.inifile.path.as_posix())}')
+    proc = subprocess.Popen(cmds)  # noqa: S603
+    code = proc.wait()
+    if code != 0:
+        logger.error(f'Editor exited with non-zero status code: {code}')
+
+    return code
+
+
 def handle_theme_actions(args: argparse.Namespace, theme: Theme) -> None | int:
+    if args.edit:
+        return edition(theme)
     if args.list_apps:
         theme.print()
         theme.list()
@@ -980,7 +998,6 @@ def process_app(app: App, mode: str | None) -> None:
     if not mode:
         logme('no mode specified (dark|light)')
         sys.exit(1)
-        return
     if app.error.occurred:
         app.status = colorize('has err', ITALIC, RED)
         logger.warning(f'{app.name}: {app.error.mesg}')
@@ -1033,6 +1050,7 @@ class Setup:
             add_help=False,
         )
         parser.add_argument('theme', nargs='?')
+        parser.add_argument('-e', '--edit', action='store_true')
         parser.add_argument('-m', '--mode', type=str, choices=['dark', 'light'])
         parser.add_argument('-l', '--list', action='store_true')
         parser.add_argument('-a', '--app', type=str)
