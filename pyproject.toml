@@ -7,10 +7,10 @@ name = "pythemes"
 dynamic = ["version"]
 description = 'select desktop themes'
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 license = "MIT"
 keywords = []
-authors = [{ name = "haaag", email = "git.haaag@gmail.com" }]
+authors = [{ name = "mateconpizza", email = "81921095+mateconpizza@users.noreply.github.com" }]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Programming Language :: Python",
@@ -24,9 +24,9 @@ classifiers = [
 dependencies = []
 
 [project.urls]
-Documentation = "https://github.com/haaag/pythemes#readme"
-Issues = "https://github.com/haaag/pythemes/issues"
-Source = "https://github.com/haaag/pythemes"
+Documentation = "https://github.com/mateconpizza/pythemes#readme"
+Issues = "https://github.com/mateconpizza/pythemes/issues"
+Source = "https://github.com/mateconpizza/pythemes"
 
 [project.scripts]
 pythemes = "pythemes.__main__:main"
@@ -69,7 +69,7 @@ fix = false
 line-length = 100
 # output-format = "full"
 show-fixes = true
-target-version = "py37"
+target-version = "py310"
 exclude = [".venv", ".mypy_cache", ".pytest_cache"]
 
 [tool.ruff.format]
