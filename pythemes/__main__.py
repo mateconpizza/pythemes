@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import Self
 
 __appname__ = 'pythemes'
-__version__ = 'v0.1.9'
+__version__ = 'v0.1.10'
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +48,11 @@ Options:
     -V, --version       Print version and exit
     -v, --verbose       Increase output verbosity
     -h, --help          Print this help message
+
+Examples:
+    {__appname__} gruvbox -m dark
+    {__appname__} gruvbox --list
+    {__appname__} gruvbox --list-apps
 
 locations:
   {APP_HOME}"""  # noqa: E501
