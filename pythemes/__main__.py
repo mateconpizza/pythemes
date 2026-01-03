@@ -53,6 +53,8 @@ Examples:
     {__appname__} gruvbox -m dark
     {__appname__} gruvbox --list
     {__appname__} gruvbox --list-apps
+    {__appname__} gruvbox -m dark -a fzf
+    {__appname__} gruvbox -m light --app fzf --diff
 
 locations:
   {APP_HOME}"""  # noqa: E501
@@ -868,7 +870,7 @@ class SysOps:
         print(colorize('[sys]', BOLD, BLUE), s, end=' ')
         pids = SysOps.pidof(s)
         if not pids:
-            print(colorize('no changes', ITALIC, YELLOW))
+            print(colorize('not found', ITALIC, RED))
             return None
 
         if SysOps.dry_run:

@@ -22,13 +22,14 @@ This script will take care of that. It's designed to handle system and applicati
 
 ```sh
 ~ $ pythemes
-Usage: {__appname__} [-h] [-m MODE] [-l] [-a APP] [-L] [-d] [-v] [-c COLOR] [--diff] [--verbose] [theme]
+Usage: pythemes [-h] [-m MODE] [-l] [-e] [-a APP] [-L] [-d] [-v] [-c COLOR] [--diff] [--verbose] [theme]
 
     Simple CLI tool for update themes files, with find/replace and execute commands.
 
 Options:
     theme               Theme name
     -m, --mode          Select a mode [light|dark]
+    -e, --edit          Edit theme with $EDITOR
     -l, --list          List themes found
     -a, --app           Apply mode to app
     -D, --diff          Show app diff
@@ -38,6 +39,13 @@ Options:
     -V, --version       Print version and exit
     -v, --verbose       Increase output verbosity
     -h, --help          Print this help message
+
+Examples:
+    pythemes gruvbox -m dark
+    pythemes gruvbox --list
+    pythemes gruvbox --list-apps
+    pythemes gruvbox -m dark -a fzf
+    pythemes gruvbox -m light --app fzf --diff
 
 locations:
   /home/$USER/.config/pythemes
