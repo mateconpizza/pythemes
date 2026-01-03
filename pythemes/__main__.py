@@ -431,6 +431,7 @@ class App:
     dry_run: bool
     original: str = ''
     status: str = ''
+    _no_changes: bool = False
     _line_idx: int = -1
     _next_theme: str = ''
     error: BaseError = field(default_factory=BaseError)
@@ -457,6 +458,7 @@ class App:
         """
         if not self.has_changes(mode):
             self.status = colorize('no changes', ITALIC, YELLOW)
+            self._no_changes = True
             return
         if not self._next_theme:
             self.status = colorize('err not updated', ITALIC, RED)
@@ -600,9 +602,12 @@ class App:
 
     def __str__(self) -> str:
         c = YELLOW
+        name = self.name
+        if self._no_changes:
+            name = colorize(name, ITALIC, GRAY)
         if self.error.occurred:
             c = RED
-        return f'{colorize("[app]", BOLD, c)} {self.name} {self.status}'
+        return f'{colorize("[app]", BOLD, c)} {name} {self.status}'
 
 
 @dataclass(slots=True)
