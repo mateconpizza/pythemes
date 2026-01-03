@@ -816,11 +816,16 @@ class SysOps:
     color: bool = False
 
     @staticmethod
-    def pid(name: str) -> list[int]:
+    def pidof(name: str) -> list[int]:
         """Retrieves the process IDs (PIDs) of a running program by its name."""
         command = f'pidof {name}'
-        bytes_pidof = subprocess.check_output(shlex.split(command))  # noqa: S603
-        pids = bytes_pidof.decode('utf-8').split()
+        try:
+            bytes_pidof = subprocess.check_output(shlex.split(command))  # noqa: S603
+            pids = bytes_pidof.decode('utf-8').split()
+        except subprocess.CalledProcessError as _:
+            logger.debug('program=%r not running', name)
+            return []
+
         logger.debug(f'program={name!r} with {pids=}')
         return [int(p) for p in pids]
 
@@ -861,7 +866,10 @@ class SysOps:
         If in dry-run mode, logs the action without sending the signal.
         """
         print(colorize('[sys]', BOLD, BLUE), s, end=' ')
-        pids = SysOps.pid(s)
+        pids = SysOps.pidof(s)
+        if not pids:
+            print(colorize('no changes', ITALIC, YELLOW))
+            return None
 
         if SysOps.dry_run:
             logger.debug(f'dry run for reloading app={s} with {pids=}')

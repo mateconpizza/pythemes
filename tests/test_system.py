@@ -12,10 +12,10 @@ from pythemes.__main__ import SysOps
 def test_sysops_pid_with_running_process():
     with patch('subprocess.check_output') as mock_check_output:
         mock_check_output.return_value = b'123 456'
-        result = SysOps.pid('test_program')
+        result = SysOps.pidof('test_program')
         mock_check_output.assert_called_once()
 
-        args, kwargs = mock_check_output.call_args
+        args, _ = mock_check_output.call_args
         assert 'pidof' in args[0]
         assert 'test_program' in args[0]
         assert result == [123, 456]
@@ -26,14 +26,14 @@ def test_sysops_pid_with_no_processes():
         mock_check_output.side_effect = subprocess.CalledProcessError(
             1, cmd='pidof nonexistent', output=b''
         )
-        with pytest.raises(subprocess.CalledProcessError):
-            SysOps.pid('nonexistent')
+        pids = SysOps.pidof('nonexistent')
+        assert len(pids) == 0
 
 
 def test_sysops_pid_with_single_process():
     with patch('subprocess.check_output') as mock_check_output:
         mock_check_output.return_value = b'789'
-        result = SysOps.pid('single_program')
+        result = SysOps.pidof('single_program')
         assert result == [789]
 
 
