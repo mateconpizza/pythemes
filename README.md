@@ -12,13 +12,13 @@
 
 </div>
 
-## 📖 Description
+## Description
 
 I use a window manager `WM`, like [`dwm`](https://github.com/haaag/dwm), so I need to manage my themes, colorschemes manually.
 
 This script will take care of that. It's designed to handle system and application themes, including `light` `dark` mode switching, wallpaper settings, and command execution.
 
-## 🛠️ Usage
+## Usage
 
 ```sh
 ~ $ pythemes
@@ -34,7 +34,7 @@ Options:
     -a, --app           Apply mode to app
     -D, --diff          Show app diff
     -L, --list-apps     List available apps in theme
-    -d, --dry-run       Do not make any changes
+    -d, --dry-run       Do not make changes
     -c, --color         Enable color [always|never] (default: always)
     -V, --version       Print version and exit
     -v, --verbose       Increase output verbosity
@@ -51,7 +51,7 @@ locations:
   /home/$USER/.config/pythemes
 ```
 
-### 🎨 Apply theme/mode
+### Apply theme/mode
 
 ```sh
 ~ $ pythemes gruvbox -m dark
@@ -76,14 +76,14 @@ locations:
 
 ```
 
-### 🎨 Apply theme/mode to single app
+### Apply theme/mode to single app
 
 ```sh
 ~ $ pythemes gruvbox -m dark -a fzf
 [app] fzf applied
 ```
 
-### 🔍 Show diff for single app
+### Show diff for single app
 
 ```sh
 ~ $ pythemes gruvbox -m light --app fzf --diff
@@ -95,7 +95,7 @@ locations:
 ?                                      ^^^^^
 ```
 
-## 📦 Installation
+## Installation
 
 - Simple copy:
 
@@ -128,7 +128,7 @@ $ python -m venv .venv & source .venv/bin/activate
 ~ $ pipx install /path/to/cloned/pythemes
 ```
 
-## 📝 Theme file
+## Theme file
 
 The theme file, is an `INI` file that has 3 sections **for now**.
 
@@ -136,7 +136,7 @@ The theme file, is an `INI` file that has 3 sections **for now**.
 - <b>wallpaper:</b> section for wallpapers settings
 - <b>restart:</b> section for restart settings
 
-### 🖥️ Program section
+### Program section
 
 ```ini
 [program_name]:
@@ -147,14 +147,14 @@ dark:     the theme to use for the dark theme
 cmd:      the command to execute (optional)
 ```
 
-### ⚙️ Command section (WIP)
+### Command section (WIP)
 
 ```ini
 [cmd]:
 ...
 ```
 
-### 🌄 Wallpaper section
+### Wallpaper section
 
 ```ini
 [wallpaper]
@@ -164,7 +164,7 @@ random:   path to the directory with the wallpapers
 cmd:      the command to execute
 ```
 
-### 🔁 Restart section
+### Restart section
 
 Will search for `PIDs` <sub>process ids</sub> that match the `cmd` and send the signal `SIGUSR1`
 
@@ -173,7 +173,7 @@ Will search for `PIDs` <sub>process ids</sub> that match the `cmd` and send the 
 cmd:      commands that will receive the signal SIGUSR1
 ```
 
-### 📝 Example
+### Example
 
 This is a example INI file for `pythemes`.
 
