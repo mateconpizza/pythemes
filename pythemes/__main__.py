@@ -37,27 +37,17 @@ HELP = textwrap.dedent(
 
 Options:
     theme               Theme name
-    -m, --mode          Select a mode [light|dark]
+    -m, --mode MODE     Select a mode [light|dark]
     -e, --edit          Edit theme with $EDITOR
     -l, --list          List themes found
-    -a, --app           Apply mode to app
-    -D, --diff          Show app diff
+    -a, --app APP       Apply mode to app
+    --diff              Show app diff
     -L, --list-apps     List available apps in theme
-    -d, --dry-run       Do not make any changes
+    -D, --dry-run       Do not make any changes
     -c, --color         Enable color [always|never] (default: always)
     -V, --version       Print version and exit
     -v, --verbose       Increase output verbosity
-    -h, --help          Print this help message
-
-Examples:
-    {__appname__} gruvbox -m dark
-    {__appname__} gruvbox --list
-    {__appname__} gruvbox --list-apps
-    {__appname__} gruvbox -m dark -a fzf
-    {__appname__} gruvbox -m light --app fzf --diff
-
-locations:
-  {APP_HOME}"""  # noqa: E501
+    -h, --help          Print this help message"""  # noqa: E501
 )
 
 # colors
@@ -1081,10 +1071,10 @@ class Setup:
         parser.add_argument('-m', '--mode', type=str, choices=['dark', 'light'])
         parser.add_argument('-l', '--list', action='store_true')
         parser.add_argument('-a', '--app', type=str)
-        parser.add_argument('-D', '--diff', action='store_true')
+        parser.add_argument('--diff', action='store_true')
         parser.add_argument('--color', type=str, choices=['always', 'never'], default='always')
         parser.add_argument('-L', '--list-apps', action='store_true')
-        parser.add_argument('-d', '--dry-run', action='store_true')
+        parser.add_argument('-D', '--dry-run', action='store_true')
         parser.add_argument('-V', '--version', action='store_true')
         parser.add_argument('-h', '--help', action='store_true')
         parser.add_argument('-v', '--verbose', action='count', default=0)

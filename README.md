@@ -21,34 +21,24 @@ This script will take care of that. It's designed to handle system and applicati
 ## Usage
 
 ```sh
-~ $ pythemes
+~ $ pythemes -h
 Usage: pythemes [-h] [-m MODE] [-l] [-e] [-a APP] [-L] [-d] [-v] [-c COLOR] [--diff] [--verbose] [theme]
 
     Simple CLI tool for update themes files, with find/replace and execute commands.
 
 Options:
     theme               Theme name
-    -m, --mode          Select a mode [light|dark]
+    -m, --mode MODE     Select a mode [light|dark]
     -e, --edit          Edit theme with $EDITOR
     -l, --list          List themes found
-    -a, --app           Apply mode to app
-    -D, --diff          Show app diff
+    -a, --app APP       Apply mode to app
+    --diff              Show app diff
     -L, --list-apps     List available apps in theme
-    -d, --dry-run       Do not make changes
+    -D, --dry-run       Do not make any changes
     -c, --color         Enable color [always|never] (default: always)
     -V, --version       Print version and exit
     -v, --verbose       Increase output verbosity
     -h, --help          Print this help message
-
-Examples:
-    pythemes gruvbox -m dark
-    pythemes gruvbox --list
-    pythemes gruvbox --list-apps
-    pythemes gruvbox -m dark -a fzf
-    pythemes gruvbox -m light --app fzf --diff
-
-locations:
-  /home/$USER/.config/pythemes
 ```
 
 ### Apply theme/mode
