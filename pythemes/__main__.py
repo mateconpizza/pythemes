@@ -961,13 +961,17 @@ def get_app(theme: Theme, appname: str, mode: str) -> App | None:
     return app
 
 
-def edition(theme: Theme) -> int:
+def edition(filepath: Path) -> int:
     editor = os.environ.get('EDITOR')
     if not editor:
         logger.error('EDITOR environment variable not set')
         return 1
 
-    cmds = shlex.split(f'{editor} {shlex.quote(theme.inifile.path.as_posix())}')
+    if not filepath.exists():
+        logger.error(f'theme {filepath.stem!r} not found')
+        return 1
+
+    cmds = shlex.split(f'{editor} {shlex.quote(filepath.as_posix())}')
     proc = subprocess.Popen(cmds)  # noqa: S603
     code = proc.wait()
     if code != 0:
@@ -978,7 +982,7 @@ def edition(theme: Theme) -> int:
 
 def handle_theme_actions(args: argparse.Namespace, theme: Theme) -> None | int:
     if args.edit:
-        return edition(theme)
+        return edition(theme.inifile.path)
     if args.list_apps:
         theme.print()
         theme.list()
@@ -992,24 +996,28 @@ def handle_theme_actions(args: argparse.Namespace, theme: Theme) -> None | int:
 
 def parse_and_exit(args: argparse.Namespace) -> None | int:
     """Parses command-line arguments and performs corresponding actions."""
+    retcode: None | int = None
+
     if args.version:
         version()
-        return 0
-    if args.help:
+        retcode = 0
+    elif args.help:
         print(HELP)
-        return 0
-    if args.list:
-        version()
-        print('\nThemes found:')
+        retcode = 0
+    elif args.edit is not None:
+        f = APP_HOME / args.edit
+        f = f.with_suffix('.ini')
+        retcode = edition(f)
+    elif args.list:
         print_list_themes()
-        return 0
-    if args.diff and not args.app:
+        retcode = 0
+    elif args.diff and not args.app:
         print(f"{__appname__}: '--diff' requires '--app' (-a)", file=sys.stderr)
-        return 1
-    if not args.theme:
+        retcode = 1
+    elif not args.theme:
         print(HELP)
-        return 1
-    return None
+        retcode = 1
+    return retcode
 
 
 def process_app(app: App, mode: str | None) -> None:
@@ -1069,7 +1077,7 @@ class Setup:
             add_help=False,
         )
         parser.add_argument('theme', nargs='?')
-        parser.add_argument('-e', '--edit', action='store_true')
+        parser.add_argument('-e', '--edit', type=str)
         parser.add_argument('-m', '--mode', type=str, choices=['dark', 'light'])
         parser.add_argument('-l', '--list', action='store_true')
         parser.add_argument('-a', '--app', type=str)
