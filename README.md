@@ -35,7 +35,7 @@ Options:
     --diff              Show app diff
     -L, --list-apps     List available apps in theme
     -D, --dry-run       Do not make any changes
-    -c, --color         Enable color [always|never] (default: always)
+    --color             Enable color [always|never] (default: always)
     -V, --version       Print version and exit
     -v, --verbose       Increase output verbosity
     -h, --help          Print this help message

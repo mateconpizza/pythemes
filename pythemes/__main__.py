@@ -44,7 +44,7 @@ Options:
     --diff              Show app diff
     -L, --list-apps     List available apps in theme
     -D, --dry-run       Do not make any changes
-    -c, --color         Enable color [always|never] (default: always)
+    --color             Enable color [always|never] (default: always)
     -V, --version       Print version and exit
     -v, --verbose       Increase output verbosity
     -h, --help          Print this help message"""  # noqa: E501
@@ -928,13 +928,18 @@ def print_list_themes() -> None:
         return
 
     max_len = max(len(t.stem) for t in themes_files)
-    for fn in themes_files:
-        ini = INIFile(fn)
-        theme = Theme(fn.stem, ini, dry_run=True).load()
-        theme.parse_apps()
-        apps = colorize(f'({len(theme.apps)} apps)', ITALIC, GRAY)
-        t = colorize('[theme]', BOLD, BLUE)
-        print(f'{t} {theme.name:<{max_len}} {apps}')
+    for filename in themes_files:
+        ini = INIFile(filename)
+        try:
+            theme = Theme(filename.stem, ini, dry_run=True).load()
+            theme.parse_apps()
+            apps = colorize(f'({len(theme.apps)} apps)', ITALIC, GRAY)
+            t = colorize('[theme]', BOLD, BLUE)
+            print(f'{t} {theme.name:<{max_len}} {apps}')
+        except configparser.NoSectionError as _:
+            errmsg = colorize('(no sections found)', GRAY, ITALIC)
+            t = colorize('[theme]', BOLD, BLUE)
+            print(f'{t} {filename.stem!s:<{max_len}} {errmsg}')
 
 
 def get_app(theme: Theme, appname: str, mode: str) -> App | None:
