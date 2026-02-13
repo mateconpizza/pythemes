@@ -29,9 +29,13 @@ INIData = dict[str, INISection]
 # app
 APP_ROOT = Path(os.environ.get('XDG_CONFIG_HOME', Path.home() / '.config'))
 APP_HOME = APP_ROOT / __appname__.lower()
+
+# common file for switching between light|dark
+GLOBAL_FILE = APP_HOME / 'global.ini'
+
 PROGRAMS_RESTART: list[str] = []
 HELP = textwrap.dedent(
-    f"""Usage: {__appname__} [-h] [-m MODE] [-l] [-e] [-a APP] [-L] [-d] [-v] [-c COLOR] [--diff] [--verbose] [theme]
+    f"""Usage: {__appname__} [-h] [-m MODE] [-l] [-e] [-a APP] [-L] [-d] [-v] [--color] [--diff] [--verbose] [--no-global] [theme]
 
     Simple CLI tool for update themes files, with find/replace and execute commands.
 
@@ -41,10 +45,11 @@ Options:
     -e, --edit          Edit theme with $EDITOR
     -l, --list          List themes found
     -a, --app APP       Apply mode to app
-    --diff              Show app diff
     -L, --list-apps     List available apps in theme
     -D, --dry-run       Do not make any changes
+    --diff              Show app diff
     --color             Enable color [always|never] (default: always)
+    --no-global         Do not apply global configuration file
     -V, --version       Print version and exit
     -v, --verbose       Increase output verbosity
     -h, --help          Print this help message"""  # noqa: E501
@@ -61,9 +66,14 @@ YELLOW = '\033[33m'
 END = '\033[0m'
 
 # styles
+DIM = '\033[2m'
 BOLD = '\033[1m'
 ITALIC = '\033[3m'
 UNDERLINE = '\033[4m'
+
+# symbols
+ANCHOR = '>'
+TILDE = '~'
 
 
 class ThemeModeError(Exception): ...
@@ -595,7 +605,7 @@ class App:
         c = YELLOW
         name = self.name
         if self._no_changes:
-            name = colorize(name, ITALIC, GRAY)
+            name = colorize(name, ITALIC, DIM)
         if self.error.occurred:
             c = RED
         return f'{colorize("[app]", BOLD, c)} {name} {self.status}'
@@ -787,15 +797,15 @@ class Theme:
         return sum(app.error.occurred for app in self.apps.values())
 
     def print(self) -> None:
-        print(f'{GRAY}>{END} {self}', end='\n\n')
+        print(f'{colorize(ANCHOR, GRAY)} {self}')
 
     def list(self) -> None:
         for app in self.apps.values():
             print(app)
 
     def __str__(self) -> str:
-        apps = colorize(f'({len(self.apps)} apps)', RED)
-        return f'{colorize(self.name, UNDERLINE, BOLD, BLUE)} theme {apps}'
+        apps = colorize(f'({len(self.apps)} apps)', ITALIC, RED)
+        return f'{colorize(self.name, UNDERLINE, BOLD, BLUE)} theme\t{apps}'
 
 
 class SysOps:
@@ -938,7 +948,7 @@ def print_list_themes() -> None:
             print(f'{t} {theme.name:<{max_len}} {apps}')
         except configparser.NoSectionError as _:
             errmsg = colorize('(no sections found)', GRAY, ITALIC)
-            t = colorize('[theme]', BOLD, BLUE)
+            t = colorize('[theme]', BOLD, RED)
             print(f'{t} {filename.stem!s:<{max_len}} {errmsg}')
 
 
@@ -948,7 +958,7 @@ def get_app(theme: Theme, appname: str, mode: str) -> App | None:
         logger.warning('no app specified')
         return None
     if not mode:
-        logger.warning('no mode specified (dark|light)')
+        logme('no mode specified (dark|light)')
         return None
     if not (app := theme.get(appname)):
         logger.warning(f'app {appname!r} not found')
@@ -1039,7 +1049,9 @@ class Setup:
         args = Setup.args()
         Setup.logging(args.verbose)
         Files.mkdir(path)
+
         # globals
+        # FIX: remove globals
         SysOps.dry_run = args.dry_run
         SysOps.color = args.color == 'always'
 
@@ -1047,6 +1059,7 @@ class Setup:
 
         if (retcode := parse_and_exit(args)) is not None:
             sys.exit(retcode)
+
         return args
 
     @staticmethod
@@ -1076,6 +1089,7 @@ class Setup:
         parser.add_argument('-m', '--mode', type=str, choices=['dark', 'light'])
         parser.add_argument('-l', '--list', action='store_true')
         parser.add_argument('-a', '--app', type=str)
+        parser.add_argument('--no-global', action='store_false')
         parser.add_argument('--diff', action='store_true')
         parser.add_argument('--color', type=str, choices=['always', 'never'], default='always')
         parser.add_argument('-L', '--list-apps', action='store_true')
@@ -1136,6 +1150,23 @@ def process_theme(theme: Theme, mode: str) -> None:
     handle_theme_updates(theme, commander, mode)
 
 
+def process_global(mode: str, use_global: bool, dry_run: bool) -> None:
+    if not GLOBAL_FILE.exists() or not use_global:
+        return
+
+    theme = initialize_theme(
+        GLOBAL_FILE.stem,
+        GLOBAL_FILE,
+        dry_run=dry_run,
+    )
+    theme.load()
+
+    print()
+    process_theme(theme, mode)
+
+    return
+
+
 def handle_theme_updates(theme: Theme, commander: Commander, mode: str) -> None:
     """Handles updates, executes commands, and restarts necessary programs."""
     n_errors = theme.errors()
@@ -1145,7 +1176,7 @@ def handle_theme_updates(theme: Theme, commander: Commander, mode: str) -> None:
             n_errors += 1
 
     if not theme.has_updates:
-        print('\n> no apps updated')
+        print(f'\n{colorize(TILDE, GRAY)} no apps updated {colorize(TILDE, GRAY)}')
         return
 
     for cmd in theme.cmds:
@@ -1157,9 +1188,10 @@ def handle_theme_updates(theme: Theme, commander: Commander, mode: str) -> None:
     for program in PROGRAMS_RESTART:
         SysOps.restart(program)
 
-    print(f'{GRAY}\n>{END} {colorize(str(theme.updates), BOLD, BLUE)} apps updated')
     if n_errors:
-        print(f'{GRAY}>{END} {colorize(str(n_errors), BOLD, RED)} errors occurred')
+        print(f'{colorize(ANCHOR, GRAY)} {colorize(str(n_errors), BOLD, RED)} errors occurred')
+    sep = colorize(TILDE, GRAY)
+    print(f'{sep} {colorize(str(theme.updates), BOLD, BLUE)} apps updated {sep}')
 
 
 def diff_app(theme: Theme, appname: str, mode: str) -> int:
@@ -1191,7 +1223,9 @@ def main() -> int:
     theme = initialize_theme(args.theme, fn, args.dry_run)
     if (retcode := handle_theme_actions(args, theme)) is not None:
         return retcode
+
     process_theme(theme, args.mode)
+    process_global(args.mode, args.no_global, args.dry_run)
 
     return 0
 

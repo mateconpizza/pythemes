@@ -14,7 +14,7 @@
 
 ## Description
 
-I use a window manager `WM`, like [`dwm`](https://github.com/haaag/dwm), so I need to manage my themes, colorschemes manually.
+I use a window manager `WM`, like [`dwm`](https://github.com/mateconpizza/dwm), so I need to manage my themes, colorschemes manually.
 
 This script will take care of that. It's designed to handle system and application themes, including `light` `dark` mode switching, wallpaper settings, and command execution.
 
@@ -22,7 +22,7 @@ This script will take care of that. It's designed to handle system and applicati
 
 ```sh
 ~ $ pythemes -h
-Usage: pythemes [-h] [-m MODE] [-l] [-e] [-a APP] [-L] [-d] [-v] [-c COLOR] [--diff] [--verbose] [theme]
+Usage: pythemes [-h] [-m MODE] [-l] [-e] [-a APP] [-L] [-d] [-v] [--color] [--diff] [--verbose] [--no-global] [theme]
 
     Simple CLI tool for update themes files, with find/replace and execute commands.
 
@@ -32,10 +32,11 @@ Options:
     -e, --edit          Edit theme with $EDITOR
     -l, --list          List themes found
     -a, --app APP       Apply mode to app
-    --diff              Show app diff
     -L, --list-apps     List available apps in theme
     -D, --dry-run       Do not make any changes
+    --diff              Show app diff
     --color             Enable color [always|never] (default: always)
+    --no-global         Do not apply global configuration file
     -V, --version       Print version and exit
     -v, --verbose       Increase output verbosity
     -h, --help          Print this help message
@@ -46,7 +47,6 @@ Options:
 ```sh
 ~ $ pythemes gruvbox -m dark
 > gruvbox theme with (10 apps)
-
 [app] bat applied
 [app] rofi applied
 [app] xresources applied
@@ -62,7 +62,7 @@ Options:
 [wal] my-dark-wallpaperjpg set
 [sys] dwm restarted
 [sys] st restarted
-
+~ 10 apps updated ~
 
 ```
 
@@ -95,11 +95,11 @@ Copy the [`main`](./pythemes/__main__.py) script to your `$PATH`, and rename it 
 
 ```bash
 # Clone repository
-$ git clone "https://github.com/haaag/pythemes"
-$ cd pythemes
+~ $ git clone "https://github.com/mateconpizza/pythemes"
+~ $ cd pythemes
 
 # Create virtual environment & source
-$ python -m venv .venv & source .venv/bin/activate
+~ $ python -m venv .venv & source .venv/bin/activate
 
 # Install
 (.venv) $ pip install .
@@ -118,7 +118,7 @@ $ python -m venv .venv & source .venv/bin/activate
 ~ $ pipx install /path/to/cloned/pythemes
 ```
 
-## Theme file
+## Theme Configuration
 
 The theme file, is an `INI` file that has 3 sections **for now**.
 
@@ -126,7 +126,7 @@ The theme file, is an `INI` file that has 3 sections **for now**.
 - <b>wallpaper:</b> section for wallpapers settings
 - <b>restart:</b> section for restart settings
 
-### Program section
+### Program Section
 
 ```ini
 [program_name]:
@@ -137,7 +137,7 @@ dark:     the theme to use for the dark theme
 cmd:      the command to execute (optional)
 ```
 
-### Command section (WIP)
+### Command Section (WIP)
 
 ```ini
 [cmd]:
@@ -193,4 +193,59 @@ dark=gruvbox-dark
 
 [restart]
 cmd=dwm st
+```
+
+## Global configuration (optional)
+
+`pythemes` supports an optional global configuration file named `global.ini`.
+
+If this file exists in the themes directory, it will be automatically applied **after** the selected theme.
+
+This allows you to define shared behavior across all themes, such as:
+
+- Global environment variables
+- Application-wide dark/light flags
+- Shared color variants
+- System-level toggles
+
+The global file follows the same INI structure as any theme file.
+
+You can disable it using:
+
+```sh
+~ $ pythemes gruvbox -m dark --no-global
+```
+
+### Example
+
+```ini
+[qutebrowser-darkmode]
+file=~/.config/qutebrowser/settings/user.py
+query=is_dark={theme},
+light=False
+dark=True
+
+[env-global-theme]
+file=~/.config/shell/theme.sh
+query=export GLOBAL_THEME={theme}
+light=light
+dark=dark
+
+[gtk3-prefer]
+file=~/.config/gtk-3.0/settings.ini
+query=gtk-application-prefer-dark-theme={theme}
+light=0
+dark=1
+
+[github-cli]
+file=~/.config/shell/gh.sh
+query=export GLAMOUR_STYLE={theme}
+light=light
+dark=dark
+
+[duf]
+file=~/.config/shell/alias.sh
+query=duf -hide special --theme={theme}'
+light=light
+dark=dark
 ```
