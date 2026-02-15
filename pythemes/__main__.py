@@ -14,6 +14,7 @@ import sys
 import textwrap
 from dataclasses import dataclass
 from dataclasses import field
+from enum import StrEnum
 from pathlib import Path
 from typing import Self
 
@@ -29,8 +30,6 @@ INIData = dict[str, INISection]
 # app
 APP_ROOT = Path(os.environ.get('XDG_CONFIG_HOME', Path.home() / '.config'))
 APP_HOME = APP_ROOT / __appname__.lower()
-
-# common file for switching between light|dark
 GLOBAL_FILE = APP_HOME / 'global.ini'
 
 PROGRAMS_RESTART: list[str] = []
@@ -87,6 +86,48 @@ class BaseError:
 
     mesg: str = ''
     occurred: bool = False
+
+
+class Operation(StrEnum):
+    EXECUTED = 'executed'
+    DRY_RUN = 'dry run'
+    HAS_ERROR = 'has err'
+    APPLIED = 'applied'
+    RESTARTED = 'restarted'
+    SET = 'set'
+    NO_CHANGES = 'no changes'
+    HAS_CHANGES = 'has changes'
+    NOT_FOUND = 'not found'
+    ERROR = 'err'
+
+    @property
+    def styled(self) -> str:
+        """Returns colorized status text."""
+        color_map = {
+            self.EXECUTED: (GREEN, ITALIC),
+            self.APPLIED: (BLUE, ITALIC),
+            self.DRY_RUN: (CYAN, ITALIC),
+            self.HAS_ERROR: (RED, ITALIC),
+            self.NOT_FOUND: (RED, ITALIC),
+            self.NO_CHANGES: (YELLOW, ITALIC),
+            self.HAS_CHANGES: (CYAN, ITALIC),
+            self.RESTARTED: (CYAN, ITALIC),
+            self.SET: (BLUE, ITALIC),
+            self.ERROR: (RED, BOLD),
+        }
+        styles = color_map.get(self, (ITALIC,))
+        return colorize(self.value, *styles)
+
+    def __str__(self) -> str:
+        return self.styled
+
+
+class OpType(StrEnum):
+    APP = '[app]'
+    SYS = '[sys]'
+    CMD = '[cmd]'
+    WAL = '[wal]'
+    THEME = '[theme]'
 
 
 class Differ:
@@ -267,12 +308,12 @@ class ModeAction:
         mode = self.get_mode(mode)
 
         if self.dry_run:
-            print(colorize('dry run', ITALIC, CYAN))
+            print(Operation.DRY_RUN)
             logger.debug(f'dry run for command={self.cmd} {mode}')
             return
 
         SysOps.run(f'{self.cmd} {mode}')
-        print(colorize('executed', ITALIC, GREEN))
+        print(Operation.EXECUTED)
 
     @classmethod
     def new(cls, data: INISection, dry_run: bool) -> ModeAction:
@@ -289,7 +330,7 @@ class ModeAction:
         )
 
     def __str__(self) -> str:
-        return f'{colorize("[cmd]", BOLD, MAGENTA)} {self.name}'
+        return f'{colorize(OpType.CMD, BOLD, MAGENTA)} {self.name}'
 
 
 @dataclass(slots=True)
@@ -314,16 +355,16 @@ class Cmd:
         print(self, end=' ')
 
         if SysOps.dry_run:
-            print(colorize('dry run', ITALIC, CYAN))
+            print(Operation.DRY_RUN)
             logger.debug(f'dry run for command={self.cmd}')
             return
 
         logger.debug(f'running command={self.cmd}')
         SysOps.run(self.cmd)
-        print(colorize('executed', ITALIC, GREEN))
+        print(Operation.EXECUTED)
 
     def __str__(self) -> str:
-        return f'{colorize("[cmd]", BOLD, MAGENTA)} {self.name}'
+        return f'{colorize(OpType.CMD, BOLD, MAGENTA)} {self.name}'
 
 
 @dataclass(slots=True)
@@ -458,7 +499,7 @@ class App:
         If in dry-run mode, logs the action without making changes.
         """
         if not self.has_changes(mode):
-            self.status = colorize('no changes', ITALIC, YELLOW)
+            self.status = Operation.NO_CHANGES.styled
             self._no_changes = True
             return
         if not self._next_theme:
@@ -466,14 +507,14 @@ class App:
             logger.error(f'{self.name}: no next theme')
             return
         if self.dry_run:
-            self.status = colorize('dry run', ITALIC, CYAN)
+            self.status = Operation.DRY_RUN.styled
             return
 
         self.replace(self._line_idx, self._next_theme)
 
         Files.savelines(self.path, self.lines)
 
-        self.status = colorize('applied', ITALIC, BLUE)
+        self.status = Operation.APPLIED.styled
 
     def replace(self, index: int, string: str) -> None:
         """
@@ -570,13 +611,13 @@ class App:
         if not mode:
             return ''
         if self.error.occurred:
-            self.status = colorize('has err', ITALIC, RED)
+            self.status = Operation.HAS_ERROR.styled
             logger.warning(f'{self.name}: {self.error.mesg}')
             return ''
         if not self.has_changes(mode):
-            self.status = colorize('no changes', ITALIC, YELLOW)
+            self.status = Operation.NO_CHANGES.styled
             return ''
-        self.status = colorize('has changes', ITALIC, CYAN)
+        self.status = Operation.HAS_CHANGES.styled
 
         idx_start = max(0, self._line_idx - 2)
         idx_end = min(len(self.lines), self._line_idx + 2)
@@ -608,7 +649,7 @@ class App:
             name = colorize(name, ITALIC, DIM)
         if self.error.occurred:
             c = RED
-        return f'{colorize("[app]", BOLD, c)} {name} {self.status}'
+        return f'{colorize(OpType.APP, BOLD, c)} {name} {self.status}'
 
 
 @dataclass(slots=True)
@@ -653,7 +694,7 @@ class Wallpaper:
         logs the action without making changes.
         """
         if self.error.occurred:
-            print(self, 'wallpaper', colorize('err', ITALIC, RED))
+            print(self, 'wallpaper', Operation.ERROR.styled)
             logger.warning(f'wallpaper: {self.error.mesg}')
             return
         if not path.is_file():
@@ -663,14 +704,14 @@ class Wallpaper:
         print(self, path.name, end=' ')
 
         if self.dry_run:
-            print(colorize('dry run', ITALIC, CYAN))
+            print(Operation.DRY_RUN)
             logger.debug(f'dry run for wallpaper={path}')
             return
 
         logger.debug(f'setting wallpaper={path!s}')
         SysOps.run(f'{self.cmd} {path}')
 
-        print(colorize('set', ITALIC, BLUE))
+        print(Operation.SET)
 
     def get(self, mode: str, fallback: Path) -> Path:
         """
@@ -721,7 +762,7 @@ class Wallpaper:
         c = GREEN
         if self.error.occurred:
             c = RED
-        return colorize('[wal]', BOLD, c)
+        return colorize(OpType.WAL, BOLD, c)
 
 
 @dataclass(slots=True)
@@ -857,7 +898,7 @@ class SysOps:
             )
         except FileNotFoundError as exc:
             err_msg = f"'{commands}': " + str(exc)
-            print(colorize('[err]', BOLD, RED), err_msg)
+            print(Operation.ERROR.styled, err_msg)
             return 1
         return proc.returncode
 
@@ -867,18 +908,18 @@ class SysOps:
         Restarts a program by sending a `SIGUSR1` signal to its process IDs.
         If in dry-run mode, logs the action without sending the signal.
         """
-        print(colorize('[sys]', BOLD, BLUE), s, end=' ')
+        print(colorize(OpType.SYS, BOLD, BLUE), s, end=' ')
         pids = SysOps.pidof(s)
         if not pids:
-            print(colorize('not found', ITALIC, RED))
+            print(Operation.NOT_FOUND)
             return None
 
         if SysOps.dry_run:
             logger.debug(f'dry run for reloading app={s} with {pids=}')
-            print(colorize('dry run', ITALIC, CYAN))
+            print(Operation.DRY_RUN)
             return None
 
-        print(colorize('restarted', ITALIC, CYAN))
+        print(Operation.RESTARTED)
         return SysOps.send_signal(pids, signal.SIGUSR1)
 
     @staticmethod
@@ -934,7 +975,7 @@ def print_list_themes() -> None:
     """Prints a list of all themes in the themes directory."""
     themes_files = get_filenames(APP_HOME)
     if not themes_files:
-        print(f'{GRAY}>{END} no themes found')
+        print(f'{colorize(ANCHOR, GRAY)} no themes found')
         return
 
     max_len = max(len(t.stem) for t in themes_files)
@@ -944,11 +985,11 @@ def print_list_themes() -> None:
             theme = Theme(filename.stem, ini, dry_run=True).load()
             theme.parse_apps()
             apps = colorize(f'({len(theme.apps)} apps)', ITALIC, GRAY)
-            t = colorize('[theme]', BOLD, BLUE)
+            t = colorize(OpType.THEME, BOLD, BLUE)
             print(f'{t} {theme.name:<{max_len}} {apps}')
         except configparser.NoSectionError as _:
             errmsg = colorize('(no sections found)', GRAY, ITALIC)
-            t = colorize('[theme]', BOLD, RED)
+            t = colorize(OpType.THEME, BOLD, RED)
             print(f'{t} {filename.stem!s:<{max_len}} {errmsg}')
 
 
@@ -1031,7 +1072,7 @@ def process_app(app: App, mode: str | None) -> None:
         logme('no mode specified (dark|light)')
         sys.exit(1)
     if app.error.occurred:
-        app.status = colorize('has err', ITALIC, RED)
+        app.status = Operation.HAS_ERROR.styled
         logger.warning(f'{app.name}: {app.error.mesg}')
         return
     app.update(mode)

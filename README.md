@@ -195,7 +195,7 @@ dark=gruvbox-dark
 cmd=dwm st
 ```
 
-## Global configuration (optional)
+## Global Configuration (Optional)
 
 `pythemes` supports an optional global configuration file named `global.ini`.
 
