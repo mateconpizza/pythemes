@@ -32,7 +32,7 @@ APP_ROOT = Path(os.environ.get('XDG_CONFIG_HOME', Path.home() / '.config'))
 APP_HOME = APP_ROOT / __appname__.lower()
 GLOBAL_FILE = APP_HOME / 'global.ini'
 
-PROGRAMS_RESTART: list[str] = []
+PROGRAMS_RESTART: set[str] = set()
 HELP = textwrap.dedent(
     f"""Usage: {__appname__} [-h] [-m MODE] [-l] [-e] [-a APP] [-L] [-d] [-v] [--color] [--diff] [--verbose] [--no-global] [theme]
 
@@ -232,7 +232,7 @@ class INIFile:
 def parse_restart(p: configparser.ConfigParser) -> None:
     """
     Parses the 'restart' section from a `ConfigParser` object and appends
-    the commands to the `PROGRAMS_RESTART` list.
+    the commands to the `PROGRAMS_RESTART` set.
     Removes the 'restart' section after parsing.
     """
     section = 'restart'
@@ -240,7 +240,7 @@ def parse_restart(p: configparser.ConfigParser) -> None:
         return
 
     for c in p.get(section, 'cmd').split():
-        PROGRAMS_RESTART.append(c)
+        PROGRAMS_RESTART.add(c)
     p.remove_section(section)
 
 
@@ -377,7 +377,8 @@ class Commander:
 
     def register(self, cmd: Cmd) -> None:
         """Register a new command to the collection."""
-        self.cmds.append(cmd)
+        if cmd not in self.cmds:
+            self.cmds.append(cmd)
 
     def add(self, app: App) -> None:
         """Add commands from an app if available."""
