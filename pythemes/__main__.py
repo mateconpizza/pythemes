@@ -194,9 +194,9 @@ class INIFile:
         """
         Parses the contents of a `ConfigParser` object into a dictionary-like structure.
         """
-        for section in self.config.sections():
-            parse_restart(self.config)
-            parse_wallpaper(self.config, self._data)
+        parse_restart(self.config)
+        parse_wallpaper(self.config, self._data)
+        for section in list(self.config.sections()):
             parse_raw_program(section, self.config, self._data)
 
         return self
@@ -1196,13 +1196,7 @@ def process_global(mode: str, use_global: bool, dry_run: bool) -> None:
     if not GLOBAL_FILE.exists() or not use_global:
         return
 
-    theme = initialize_theme(
-        GLOBAL_FILE.stem,
-        GLOBAL_FILE,
-        dry_run=dry_run,
-    )
-    theme.load()
-
+    theme = initialize_theme(GLOBAL_FILE.stem, GLOBAL_FILE, dry_run=dry_run)
     print()
     process_theme(theme, mode)
 
@@ -1267,7 +1261,10 @@ def main() -> int:
         return retcode
 
     process_theme(theme, args.mode)
-    process_global(args.mode, args.no_global, args.dry_run)
+
+    # process shared behavior
+    if theme.name != GLOBAL_FILE.stem:
+        process_global(args.mode, args.no_global, args.dry_run)
 
     return 0
 
