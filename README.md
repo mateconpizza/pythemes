@@ -199,7 +199,7 @@ cmd=dwm st
 
 `pythemes` supports an optional global configuration file named `global.ini`.
 
-If this file exists in the themes directory, it will be automatically applied **after** the selected theme.
+If this file exists in the themes directory (`$XDG_CONFIG_HOME/pythemes`), it will be automatically applied **after** the selected theme.
 
 This allows you to define shared behavior across all themes, such as:
 
