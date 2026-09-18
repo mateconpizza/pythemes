@@ -153,6 +153,7 @@ def user_theme(ini_filepath: Path) -> Theme:
 def valid_app(temp_section: INISection) -> App:
     return App.new(temp_section, dry_run=True)
 
+
 @pytest.fixture
 def valid_apps(valid_app: App) -> dict[str, App]:
     apps: dict[str, App] = {}

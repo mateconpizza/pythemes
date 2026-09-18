@@ -51,9 +51,5 @@ def test_parse_restart(name, config_data, expected_programs, expected_section):
 
     parse_restart(config)
 
-    assert programs == expected_programs, (
-        f'{name}: parsed programs do not match expected'
-    )
-    assert config.has_section('restart') == expected_section, (
-        f'{name}: section removal mismatch'
-    )
+    assert programs == expected_programs, f'{name}: parsed programs do not match expected'
+    assert config.has_section('restart') == expected_section, f'{name}: section removal mismatch'

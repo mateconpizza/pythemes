@@ -34,16 +34,6 @@ pythemes = "pythemes.__main__:main"
 [tool.hatch.version]
 path = "pythemes/__main__.py"
 
-[tool.hatch.envs.default]
-dependencies = ["coverage[toml]>=6.5", "pytest"]
-[tool.hatch.envs.default.scripts]
-check = "mypy ."
-test = "pytest {args:tests}"
-test-cov = "coverage run -m pytest {args:tests}"
-cov-report = ["- coverage combine", "coverage report"]
-cov-html = ["- coverage combine", "coverage html"]
-cov = ["test-cov", "cov-report", "cov-html"]
-
 [[tool.mypy.overrides]]
 module = ["pytest.*"]
 ignore_missing_imports = true
@@ -52,22 +42,9 @@ ignore_missing_imports = true
 pythonpath = "pythemes"
 testpaths = ["tests"]
 
-[[tool.hatch.envs.all.matrix]]
-python = ["3.8", "3.9", "3.10", "3.11"]
-
-[tool.hatch.envs.lint]
-detached = true
-dependencies = ["mypy>=1.0.0", "ruff>=0.0.243"]
-[tool.hatch.envs.lint.scripts]
-typing = "mypy --install-types --non-interactive {args:pythemes tests}"
-style = ["ruff {args:.}"]
-fmt = ["ruff --fix {args:.}", "style"]
-all = ["style", "typing"]
-
 [tool.ruff]
 fix = false
 line-length = 100
-# output-format = "full"
 show-fixes = true
 target-version = "py310"
 exclude = [".venv", ".mypy_cache", ".pytest_cache"]
@@ -160,6 +137,10 @@ ban-relative-imports = "all"
 dev = [
     "coverage[toml]>=6.5",
     "pytest>=8.3.5",
+]
+lint = [
+    "mypy>=2.3.1",
+    "ruff>=0.16.8",
 ]
 
 [tool.hatch.build.targets.sdist]

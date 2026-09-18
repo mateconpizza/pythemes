@@ -19,4 +19,8 @@ cov-report:
 cov-html:
 	uv run coverage html
 
+fmt:
+	uv run --group lint ruff check --fix .
+	uv run --group lint ruff format .
+
 cov: test-cov cov-report cov-html
