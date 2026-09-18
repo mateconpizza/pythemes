@@ -20,13 +20,20 @@ class Case(NamedTuple):
         Case(
             name='basic_match',
             query='theme-{theme}-config',
-            lines=['theme-dark-config', 'theme-light-config'],
+            lines=[
+                'theme-dark-config',
+                'theme-light-config',
+            ],
             expected=(0, 'dark'),
         ),
         Case(
             name='multiple_matches',
             query='theme-{theme}-config',
-            lines=['random', 'theme-dark-config', 'theme-light-config'],
+            lines=[
+                'random',
+                'theme-dark-config',
+                'theme-light-config',
+            ],
             expected=(1, 'dark'),
         ),
         Case(
@@ -38,19 +45,28 @@ class Case(NamedTuple):
         Case(
             name='special_characters',
             query='path/{theme}/file',
-            lines=['path/admin/file', 'path/user/file'],
+            lines=[
+                'path/admin/file',
+                'path/user/file',
+            ],
             expected=(0, 'admin'),
         ),
         Case(
             name='empty_query',
             query='',
-            lines=['theme-dark-config', 'theme-light-config'],
+            lines=[
+                'theme-dark-config',
+                'theme-light-config',
+            ],
             expected=(-1, ''),
         ),
         Case(
             name='partial_match',
             query='theme-{theme}',
-            lines=['theme-dark-config', 'theme-light-config'],
+            lines=[
+                'theme-dark-config',
+                'theme-light-config',
+            ],
             expected=(0, 'dark-config'),
         ),
         Case(
@@ -88,6 +104,72 @@ class Case(NamedTuple):
                 'export XDG_DATA_HOME="$HOME"/.local/share',
                 'export BAT_THEME="gruvbox-light"',
                 'export BROWSER=firefox',
+            ],
+            expected=(-1, ''),
+        ),
+        Case(
+            name='theme_with_spaces',
+            query='"theme": "builtin:{theme}",',
+            lines=[
+                '"theme": "builtin:Tokyo Night.css",',
+            ],
+            expected=(0, 'Tokyo Night.css'),
+        ),
+        Case(
+            name='regex_special_chars_in_query',
+            query='config[theme={theme}] (v1.0)?',
+            lines=[
+                'config[theme=dracula] (v1.0)?',
+            ],
+            expected=(0, 'dracula'),
+        ),
+        Case(
+            name='unicode_and_emojis',
+            query='theme-{theme}',
+            lines=[
+                'theme-東京-夜',
+                'theme-catppuccin-🌸',
+            ],
+            expected=(0, '東京-夜'),
+        ),
+        Case(
+            name='placeholder_at_start',
+            query='{theme}.config.json',
+            lines=[
+                'app/settings.json',
+                'dark.config.json',
+            ],
+            expected=(1, 'dark'),
+        ),
+        Case(
+            name='placeholder_at_end',
+            query='active_theme = {theme}',
+            lines=[
+                'active_theme = gruvbox dark',
+            ],
+            expected=(0, 'gruvbox dark'),
+        ),
+        Case(
+            name='numbers_and_dots',
+            query='version-{theme}-beta',
+            lines=[
+                'version-1.2.3-beta',
+            ],
+            expected=(0, '1.2.3'),
+        ),
+        Case(
+            name='greedy_match_with_delimiters',
+            query='path/{theme}/end',
+            lines=[
+                'path/a/b/c/end',
+            ],
+            expected=(0, 'a/b/c'),
+        ),
+        Case(
+            name='empty_captured_value',
+            query='theme-{theme}-config',
+            lines=[
+                'theme--config',
             ],
             expected=(-1, ''),
         ),
