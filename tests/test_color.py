@@ -16,6 +16,7 @@ from pythemes.__main__ import MAGENTA
 from pythemes.__main__ import RED
 from pythemes.__main__ import UNDERLINE
 from pythemes.__main__ import YELLOW
+from pythemes.__main__ import SysOps
 from pythemes.__main__ import colorize
 
 
@@ -86,8 +87,6 @@ class ColorCase(NamedTuple):
     ),
 )
 def test_color_fn(name: str, text: str, styles: list[str], expected: str) -> None:
-    from pythemes.__main__ import SysOps
-
     SysOps.color = True
     got = colorize(text, *styles)
     assert got == expected, f'failed for {name}: {expected=} {got=}'
@@ -153,8 +152,6 @@ def test_color_fn(name: str, text: str, styles: list[str], expected: str) -> Non
     ),
 )
 def test_color_fn_no_color(name: str, text: str, styles: list[str], expected: str) -> None:
-    from pythemes.__main__ import SysOps
-
     SysOps.color = False
     assert colorize(text, *styles) == expected, f'failed for {name}'
 
@@ -225,8 +222,6 @@ def test_color_no_color_env(
     expected: str,
     monkeypatch: MonkeyPatch,
 ):
-    from pythemes.__main__ import SysOps
-
     SysOps.color = True
     monkeypatch.setenv('NO_COLOR', '1')
 

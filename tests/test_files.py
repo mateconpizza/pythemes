@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Callable
+from typing import TYPE_CHECKING
 from unittest.mock import patch
 
 import pytest
 
 from pythemes.__main__ import Files
 from tests.conftest import CONFIG
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 FILE_CONTENT = f"""
 [dunst-reload]

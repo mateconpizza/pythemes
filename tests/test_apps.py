@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import copy
-from typing import Callable
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -11,6 +11,9 @@ from pythemes.__main__ import INISection
 from pythemes.__main__ import ThemeModeError
 from pythemes.__main__ import process_app
 from tests.conftest import CONFIG
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 def test_app_new(temp_section: INISection):

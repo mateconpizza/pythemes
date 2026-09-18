@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Callable
+from typing import TYPE_CHECKING
 
 import pytest
 
 from pythemes.__main__ import InvalidFilePathError
 from pythemes.__main__ import Wallpaper
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 @pytest.fixture()
