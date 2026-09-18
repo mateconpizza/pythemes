@@ -57,7 +57,7 @@ Options:
 # colors
 BLUE = '\033[94m'
 CYAN = '\033[96m'
-GRAY = '\33[37m'
+GRAY = '\33[2m'
 GREEN = '\033[92m'
 MAGENTA = '\033[95m'
 RED = '\033[91m'
@@ -333,7 +333,7 @@ class ModeAction:
         return f'{colorize(OpType.CMD, BOLD, MAGENTA)} {self.name}'
 
 
-@dataclass(slots=True)
+@dataclass(slots=True, frozen=True)
 class Cmd:
     """
     A command dataclass used to wrap commands that can be executed or logged.
@@ -844,6 +844,8 @@ class Theme:
     def list(self) -> None:
         for app in self.apps.values():
             print(app)
+        for cmd in self.cmds:
+            print(cmd)
 
     def __str__(self) -> str:
         apps = colorize(f'({len(self.apps)} apps)', ITALIC, RED)
@@ -1027,7 +1029,7 @@ def edition(filepath: Path) -> int:
     return code
 
 
-def handle_theme_actions(args: argparse.Namespace, theme: Theme) -> None | int:
+def handle_theme_actions(args: argparse.Namespace, theme: Theme) -> int | None:
     if args.edit:
         return edition(theme.inifile.path)
     if args.list_apps:
@@ -1041,9 +1043,9 @@ def handle_theme_actions(args: argparse.Namespace, theme: Theme) -> None | int:
     return None
 
 
-def parse_and_exit(args: argparse.Namespace) -> None | int:
+def parse_and_exit(args: argparse.Namespace) -> int | None:
     """Parses command-line arguments and performs corresponding actions."""
-    retcode: None | int = None
+    retcode: int | None = None
 
     if args.version:
         version()
@@ -1192,15 +1194,26 @@ def process_theme(theme: Theme, mode: str) -> None:
     handle_theme_updates(theme, commander, mode)
 
 
-def process_global(mode: str, use_global: bool, dry_run: bool) -> None:
+def process_global(user_theme: Theme, mode: str, use_global: bool, dry_run: bool) -> None:
     if not GLOBAL_FILE.exists() or not use_global:
         return
 
-    theme = initialize_theme(GLOBAL_FILE.stem, GLOBAL_FILE, dry_run=dry_run)
+    global_theme = initialize_theme(GLOBAL_FILE.stem, GLOBAL_FILE, dry_run=dry_run)
+
+    # the user app settings should be prioritised
+    global_theme = apply_theme_priority(user_theme, global_theme)
+
     print()
-    process_theme(theme, mode)
+    process_theme(global_theme, mode)
 
     return
+
+
+def apply_theme_priority(priority_theme: Theme, target_theme: Theme) -> Theme:
+    """Remove apps from target_theme overridden by priority_theme."""
+    for app in priority_theme.apps:
+        target_theme.apps.pop(app, None)
+    return target_theme
 
 
 def handle_theme_updates(theme: Theme, commander: Commander, mode: str) -> None:
@@ -1264,7 +1277,7 @@ def main() -> int:
 
     # process shared behavior
     if theme.name != GLOBAL_FILE.stem:
-        process_global(args.mode, args.no_global, args.dry_run)
+        process_global(theme, args.mode, args.no_global, args.dry_run)
 
     return 0
 

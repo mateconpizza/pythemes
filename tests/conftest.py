@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+import copy
 from typing import TYPE_CHECKING
-from typing import Callable
 from typing import NamedTuple
 
 import pytest
@@ -13,6 +13,7 @@ from pythemes.__main__ import Theme
 from pythemes.__main__ import Wallpaper
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
     from pathlib import Path
 
     from pythemes.__main__ import INISection
@@ -144,8 +145,22 @@ def theme(ini_filepath: Path) -> Theme:
 
 
 @pytest.fixture
+def user_theme(ini_filepath: Path) -> Theme:
+    return Theme(CONFIG.name, INIFile(ini_filepath), dry_run=True)
+
+
+@pytest.fixture
 def valid_app(temp_section: INISection) -> App:
     return App.new(temp_section, dry_run=True)
+
+@pytest.fixture
+def valid_apps(valid_app: App) -> dict[str, App]:
+    apps: dict[str, App] = {}
+    for i in range(8):
+        a = copy.deepcopy(valid_app)
+        a.name = f'{a.name}-{i}'
+        apps[a.name] = a
+    return apps
 
 
 @pytest.fixture
