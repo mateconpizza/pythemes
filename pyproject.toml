@@ -7,16 +7,13 @@ name = "pythemes"
 dynamic = ["version"]
 description = 'select desktop themes'
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = "MIT"
 keywords = []
 authors = [{ name = "mateconpizza", email = "81921095+mateconpizza@users.noreply.github.com" }]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Programming Language :: Python",
-  "Programming Language :: Python :: 3.8",
-  "Programming Language :: Python :: 3.9",
-  "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy",
@@ -46,7 +43,7 @@ testpaths = ["tests"]
 fix = false
 line-length = 100
 show-fixes = true
-target-version = "py310"
+target-version = "py311"
 exclude = [".venv", ".mypy_cache", ".pytest_cache"]
 
 [tool.ruff.format]
