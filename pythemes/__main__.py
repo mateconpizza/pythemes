@@ -949,7 +949,7 @@ def find(query: str, list_strings: list[str]) -> tuple[int, str]:
         logger.warning('query does not contain placeholder {theme}.')
         return -1, ''
 
-    pattern = re.escape(query).replace('\\{theme\\}', '(\\S+)')
+    pattern = re.escape(query).replace('\\{theme\\}', '(.+)')
     regex = re.compile(pattern)
 
     for idx, line in enumerate(list_strings):
